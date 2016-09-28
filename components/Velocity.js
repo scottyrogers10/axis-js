@@ -1,10 +1,10 @@
 define(function () {
-    var Position = function () {
-        this.type = "position";
+    var Velocity = function () {
+        this.type = "velocity";
         this.isActive = true;
         this.x = 0;
         this.y = 0;
     };
 
-    return Position;
+    return Velocity;
 });

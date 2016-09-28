@@ -1,63 +1,73 @@
 define(function () {
     var RenderSystem = function () {
+        this.type = "render";
         this.game = null;
-        this.activeViewPort = null;
-        this.renderableEntities = [];
+        this.isReady = false;
     };
 
-    RenderSystem.prototype.getActiveViewPort = function () {
-        var renderSystem = this;
+    RenderSystem.prototype.getActiveCamera = function () {
+        var self = this;
 
-        for (var i = 0; i < renderSystem.game.viewports.length; i++) {
-            if (renderSystem.game.viewports[i].active) {
-                renderSystem.activeViewPort = renderSystem.game.viewports[i];
-                break;
+        for (var i = 0; i < self.game.cameras.length; i++) {
+            if (self.game.cameras[i].isActive) {
+                return self.game.cameras[i];
             }
         }
     };
 
     RenderSystem.prototype.getRenderableEntities = function () {
-        var renderSystem = this;
-        var rootEntity = renderSystem.game.world.rootEntity;
+        var self = this;
+        var rootEntity = self.game.world.rootEntity;
 
-        var renderableEntities = function (entity) {
-            return entity.hasComponents(["position", "size", "sprite"]);
-        };
-
-        this.renderableEntities = rootEntity.filter(renderableEntities);
+        return rootEntity.getChildrenWithActiveComponentsByTypes(["position", "size", "sprite"]);
     };
 
-    RenderSystem.prototype.clearViewPort = function () {
-        this.activeViewPort.ctx.clearRect(0, 0, this.activeViewPort.canvas.width, this.activeViewPort.canvas.height);
+    RenderSystem.prototype.clearCameraRender = function () {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     };
 
-    RenderSystem.prototype.drawEntity = function (entity) {
-        var sprite = entity.getComponentByType("sprite");
-        var position = entity.getComponentByType("position");
-        var size = entity.getComponentByType("size");
+    RenderSystem.prototype.getSpriteSheetImgByName = function (name) {
+        var spriteSheetsImgs = this.game.spriteSheets.imgs;
 
-        this.activeViewPort.ctx.drawImage(sprite.img,
-                    sprite.srcX, sprite.srcY,
-                    sprite.srcW, sprite.srcH,
-                    position.x - this.activeViewPort.offset.x, position.y - this.activeViewPort.offset.y,
-                    size.w, size.h);
+        for (var i = 0; i < spriteSheetsImgs.length; i++) {
+            if (name == spriteSheetsImgs[i].name) {
+                return spriteSheetsImgs[i];
+            }
+        }
     };
 
-    RenderSystem.prototype.activated = function (game) {
+    RenderSystem.prototype.drawEntities = function (renderableEntities, activeCamera) {
+        var self = this;
+
+        for (var i = 0; i < renderableEntities.length; i++) {
+            var entity = renderableEntities[i];
+
+            var sprite = entity.getActiveComponentByType("sprite");
+            var position = entity.getActiveComponentByType("position");
+            var size = entity.getActiveComponentByType("size");
+            var spriteImg = self.getSpriteSheetImgByName(sprite.imgSrc);
+
+            activeCamera.ctx.drawImage(spriteImg,
+                        sprite.srcX, sprite.srcY,
+                        sprite.srcW, sprite.srcH,
+                        (position.x - activeCamera.offset.x), (position.y - activeCamera.offset.y),
+                        size.w, size.h);
+        }
+    };
+
+    RenderSystem.prototype.activate = function (game) {
         this.game = game;
+        this.isReady = true;
     };
 
     RenderSystem.prototype.update = function () {
-        var renderSystem = this;
+        var self = this;
 
-        this.getActiveViewPort();
-        this.getRenderableEntities();
-        this.clearViewPort();
+        var renderableEntities = this.getRenderableEntities();
+        var activeCamera = this.getActiveCamera();
 
-        for (var i = 0; i < renderSystem.renderableEntities.length; i++) {
-            renderSystem.drawEntity(renderSystem.renderableEntities[i]);
-        }
-
+        this.clearCameraRender.call(activeCamera);
+        this.drawEntities(renderableEntities, activeCamera);
     };
 
     return RenderSystem;

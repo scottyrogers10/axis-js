@@ -1,34 +1,101 @@
-define(function () {
-    var Game = function (world) {
-        // this.timer = timer;
-        this.world = world;
-        // this.gameState = null;
-        // this.tick = null;
+define(function (require) {
+    var Entity = require("axis/core/Entity");
 
-        this.viewports = [];
+    var Game = function () {
+        this.dt = 0;
+        this.tick = 0;
+
+        this.world = {
+            rootEntity: new Entity("rootEntity"),
+            width: 0,
+            height: 0
+        };
+
+        this.spriteSheets = {
+            imgs: [],
+            srcs: []
+        };
+
+        this.cameras = [];
         this.systems = [];
     };
 
-    Game.prototype.addViewport = function (viewport) {
-        this.viewports.push(viewport);
+    Game.prototype.addCamera = function (camera) {
+        this.cameras.push(camera);
+    };
+
+    Game.prototype.getCameraById = function (id) {
+        var self = this;
+
+        for (var i = 0; i < self.cameras.length; i++) {
+            if (id == self.cameras[i].id) {
+                return self.cameras[i];
+            }
+        }
+    };
+
+    Game.prototype.addSpriteSheet = function (src) {
+        this.spriteSheets.srcs.push(src);
     };
 
     Game.prototype.addSystem = function (system) {
-        var game = this;
-        this.systems.push(system);
-
-        if (typeof system.activated === "function") {
-            system.activated(game);
-        }
-
+        this.addSystems([system]);
     };
 
-    Game.prototype.runGameLoop = function () {
-        var game = this;
+    Game.prototype.addSystems = function (systems) {
+        var self = this;
+
+        for (var i = 0; i < systems.length; i++) {
+            var system = new systems[i]();
+            self.systems.push(system);
+
+            if (typeof system.activate === "function") {
+                system.activate(self);
+            }
+        }
+    };
+
+    Game.prototype.getSystemByType = function (type) {
+        var self = this;
+
+        for (var i = 0; i < self.systems.length; i++) {
+            if (self.systems[i].type === type) {
+                return self.systems[i];
+            }
+        }
+    };
+
+    Game.prototype.checkAllSystemsReady = function () {
+        var self = this;
+
+        return self.systems.every(function (system) {
+            return system.isReady;
+        });
+    };
+
+    Game.prototype.updateSystems = function () {
+        var self = this;
+
+        for (var i = 0; i < self.systems.length; i++) {
+            if (typeof self.systems[i].update === "function") {
+                self.systems[i].update();
+            }
+        }
+    };
+
+    Game.prototype.run = function () {
+        var self = this;
+        var lastTime = null;
 
         var loop = function () {
-            for (var i = 0; i < game.systems.length; i++) {
-                game.systems[i].update(self);
+            if (self.checkAllSystemsReady()) {
+                var now = new Date().getTime();
+                self.dt = now - (lastTime || now);
+
+                lastTime = now;
+
+                self.tick++;
+                self.updateSystems();
             }
 
             window.requestAnimationFrame(loop);
