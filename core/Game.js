@@ -34,6 +34,16 @@ define(function (require) {
         }
     };
 
+    Game.prototype.getActiveCamera = function () {
+        var self = this;
+
+        for (var i = 0; i < self.cameras.length; i++) {
+            if (self.cameras[i].isActive) {
+                return self.cameras[i];
+            }
+        }
+    };
+
     Game.prototype.addSpriteSheet = function (src) {
         this.spriteSheets.srcs.push(src);
     };
@@ -83,7 +93,11 @@ define(function (require) {
         }
     };
 
-    Game.prototype.run = function () {
+    Game.prototype.pause = function () {
+        cancelAnimationFrame(this.tick);
+    };
+
+    Game.prototype.play = function () {
         var self = this;
         var lastTime = null;
 
@@ -93,12 +107,11 @@ define(function (require) {
                 self.dt = now - (lastTime || now);
 
                 lastTime = now;
+                self.tick = requestAnimationFrame(loop);
 
-                self.tick++;
                 self.updateSystems();
             }
 
-            window.requestAnimationFrame(loop);
         };
 
         loop();

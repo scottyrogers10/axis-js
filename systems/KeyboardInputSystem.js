@@ -3,7 +3,6 @@ define(function () {
         this.type = "keyboardInput";
         this.game = null;
         this.isReady = false;
-
         this.pressed = {};
     };
 
@@ -13,6 +12,13 @@ define(function () {
 
     KeyboardInputSystem.prototype.onKeyUp = function (event) {
         this.pressed[event.keyCode] = false;
+    };
+
+    KeyboardInputSystem.prototype.setKeyInputsOnEntities = function (entities) {
+        for (var i = 0; i < entities.length; i++) {
+            var keyboardInputComponent = entities[i].getActiveComponentByType("keyboardInput");
+            keyboardInputComponent.pressed = this.pressed;
+        }
     };
 
     KeyboardInputSystem.prototype.activate = function (game) {
@@ -33,13 +39,9 @@ define(function () {
     KeyboardInputSystem.prototype.update = function () {
         var self = this;
         var rootEntity = self.game.world.rootEntity;
-
         var keyboardInputEntities = rootEntity.getChildrenWithActiveComponentByType("keyboardInput");
 
-        for (var i = 0; i < keyboardInputEntities.length; i++) {
-            var keyboardInputComponent = keyboardInputEntities[i].getActiveComponentByType("keyboardInput");
-            keyboardInputComponent.pressed = self.pressed;
-        }
+        self.setKeyInputsOnEntities(keyboardInputEntities);
     };
 
     return KeyboardInputSystem;

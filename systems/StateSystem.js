@@ -6,47 +6,56 @@ define(function () {
         this.statesHash = {};
     };
 
+    StateSystem.prototype.setStatesOnEntities = function (entities) {
+        for (var i = 0; i < entities.length; i++) {
+            var entity = entities[i];
+            var stateComponent = entity.getActiveComponentByType("state");
+
+            if (!this.statesHash[entity.id]) {
+                this.statesHash[entity.id] = stateComponent.currentState;
+            }
+
+            if (this.statesHash[entity.id] !== stateComponent.currentState) {
+                var entityComponents = entity.components;
+                var activeStateComponents = stateComponent.states[stateComponent.currentState];
+
+                // NOTE: Deactivate all components first.
+                for (var j = 0; j < entityComponents.length; j++) {
+                    var entityComponent = entityComponents[j];
+                    entity.deactivateComponent(entityComponent);
+                }
+
+                var filteredActiveStateComponents = activeStateComponents.filter(function (component) {
+                    for (var k = 0; k < entityComponents.length; k++) {
+                        var entityComponent = entityComponents[k];
+
+                        if (component === entityComponent) {
+                            return component;
+                        }
+                    }
+                });
+
+                // NOTE: Activate only the components on the current state array.
+                for (var l = 0; l < filteredActiveStateComponents.length; l++) {
+                    var filteredActiveStateComponent = filteredActiveStateComponents[l];
+                    entity.activateComponent(filteredActiveStateComponent);
+                }
+
+                this.statesHash[entity.id] = stateComponent.currentState;
+            }
+        }
+    };
+
     StateSystem.prototype.activate = function (game) {
         this.game = game;
         this.isReady = true;
     };
 
     StateSystem.prototype.update = function () {
-        var self = this;
-
-        var rootEntity = self.game.world.rootEntity;
+        var rootEntity = this.game.world.rootEntity;
         var stateComponentEntities = rootEntity.getChildrenWithActiveComponentByType("state");
 
-        for (var i = 0; i < stateComponentEntities.length; i++) {
-            var stateComponent = stateComponentEntities[i].getActiveComponentByType("state");
-
-            if (!self.statesHash[stateComponentEntities[i].id]) {
-                self.statesHash[stateComponentEntities[i].id] = stateComponent.currentState;
-            }
-
-            if (self.statesHash[stateComponentEntities[i].id] !== stateComponent.currentState) {
-                var allComponents = stateComponentEntities[i].components;
-                var activeStateComponents = stateComponent.states[stateComponent.currentState];
-
-                for (var j = 0; j < allComponents.length; j++) {
-                    stateComponentEntities[i].deactivateComponent(allComponents[j]);
-                }
-
-                var filteredActiveStateComponents = activeStateComponents.filter(function (component) {
-                    for (var k = 0; k < allComponents.length; k++) {
-                        if (component === allComponents[k]) {
-                            return component;
-                        }
-                    }
-                });
-
-                for (var l = 0; l < filteredActiveStateComponents.length; l++) {
-                    stateComponentEntities[i].activateComponent(filteredActiveStateComponents[l]);
-                }
-
-                self.statesHash[stateComponentEntities[i].id] = stateComponent.currentState;
-            }
-        }
+        this.setStatesOnEntities(stateComponentEntities)
     };
 
     return StateSystem;

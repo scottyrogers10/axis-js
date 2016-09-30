@@ -5,16 +5,6 @@ define(function () {
         this.isReady = false;
     };
 
-    RenderSystem.prototype.getActiveCamera = function () {
-        var self = this;
-
-        for (var i = 0; i < self.game.cameras.length; i++) {
-            if (self.game.cameras[i].isActive) {
-                return self.game.cameras[i];
-            }
-        }
-    };
-
     RenderSystem.prototype.getRenderableEntities = function () {
         var self = this;
         var rootEntity = self.game.world.rootEntity;
@@ -41,7 +31,6 @@ define(function () {
 
         for (var i = 0; i < renderableEntities.length; i++) {
             var entity = renderableEntities[i];
-
             var sprite = entity.getActiveComponentByType("sprite");
             var position = entity.getActiveComponentByType("position");
             var size = entity.getActiveComponentByType("size");
@@ -62,9 +51,8 @@ define(function () {
 
     RenderSystem.prototype.update = function () {
         var self = this;
-
         var renderableEntities = this.getRenderableEntities();
-        var activeCamera = this.getActiveCamera();
+        var activeCamera = this.game.getActiveCamera();
 
         this.clearCameraRender.call(activeCamera);
         this.drawEntities(renderableEntities, activeCamera);
