@@ -17,6 +17,15 @@ define(function () {
         this.children.push(entity);
     };
 
+    Entity.prototype.removeChildEntityById = function (id) {
+        for (var i = 0; i < this.children.length; i++) {
+            if (this.children[i].id === id) {
+                this.children.splice(i, 1);
+                break;
+            }
+        }
+    };
+
     Entity.prototype.getChildByType = function (type) {
         return this.getChildrenByType(type)[0];
     };

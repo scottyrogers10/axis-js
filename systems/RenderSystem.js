@@ -50,8 +50,8 @@ define(function () {
             activeCamera.ctx.drawImage(spriteImg,
                         sprite.srcX, sprite.srcY,
                         sprite.srcW, sprite.srcH,
-                        (position.x - activeCamera.offset.x), (position.y - activeCamera.offset.y),
-                        size.w, size.h);
+                        (position.x - activeCamera.offsetX), (position.y - activeCamera.offsetY),
+                        size.width, size.height);
         }
     };
 

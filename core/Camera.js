@@ -11,10 +11,8 @@ define(function () {
         this.ctx = this.canvas.getContext("2d");
 
         this.isActive = false;
-        this.offset = {
-            x: 0,
-            y: 0
-        };
+        this.offsetX = 0;
+        this.offsetY = 0;
     };
 
     Camera.prototype.getPixelRatio = function (ctx) {

@@ -4,8 +4,8 @@ define(function () {
         this.isActive = true;
         this.offsetX = 0;
         this.offsetY = 0;
-        this.w = 0;
-        this.h = 0;
+        this.width = 0;
+        this.height = 0;
     };
 
     return RigidBody;

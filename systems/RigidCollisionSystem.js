@@ -18,9 +18,9 @@ define(function() {
         };
 
         var top = Math.max(positionA.y, positionB.y);
-        var bottom = Math.min(positionA.y + rigidBodyA.h, positionB.y + rigidBodyB.h);
+        var bottom = Math.min(positionA.y + rigidBodyA.height, positionB.y + rigidBodyB.height);
         var left = Math.max(positionA.x, positionB.x);
-        var right = Math.min(positionA.x + rigidBodyA.w, positionB.x + rigidBodyB.w);
+        var right = Math.min(positionA.x + rigidBodyA.width, positionB.x + rigidBodyB.width);
 
         return top < bottom && left < right;
     };
@@ -65,17 +65,17 @@ define(function() {
 
             // if entity is outside the camera extents, then ignore it
             if (
-                position.x + rigidBody.w < camera.offset.x || position.x > camera.width ||
-                position.y + rigidBody.h < camera.offset.y || position.y > camera.height
+                position.x + rigidBody.width < camera.offsetX || position.x > camera.width ||
+                position.y + rigidBody.height < camera.offsetY || position.y > camera.height
             ) {
                 continue;
             }
 
             // Find the cells that the entity overlap.
             left = Math.floor((position.x) / this.cellSize);
-            right = Math.floor((position.x + rigidBody.w) / this.cellSize);
+            right = Math.floor((position.x + rigidBody.width) / this.cellSize);
             top = Math.floor((position.y) / this.cellSize);
-            bottom = Math.floor((position.y + rigidBody.h) / this.cellSize);
+            bottom = Math.floor((position.y + rigidBody.height) / this.cellSize);
 
             // Insert entity into each cell it overlaps
             for (cX = left; cX <= right; cX++) {
@@ -199,22 +199,22 @@ define(function() {
             var positionComponent = entities[i].getActiveComponentByType("position");
             var restraintComponent = entities[i].getActiveComponentByType("restraint");
 
-            restraintComponent.restraining = [];
+            restraintComponent.restrainingSides = [];
 
             if (positionComponent.x < restraintComponent.left) {
-                restraintComponent.restraining.push("left");
+                restraintComponent.restrainingSides.push("left");
             }
 
-            if (positionComponent.x + rigidBodyComponent.w > restraintComponent.right) {
-                restraintComponent.restraining.push("right");
+            if (positionComponent.x + rigidBodyComponent.width > restraintComponent.right) {
+                restraintComponent.restrainingSides.push("right");
             }
 
             if (positionComponent.y < restraintComponent.top) {
-                restraintComponent.restraining.push("top");
+                restraintComponent.restrainingSides.push("top");
             }
 
-            if (positionComponent.y + rigidBodyComponent.h > restraintComponent.bottom) {
-                restraintComponent.restraining.push("bottom");
+            if (positionComponent.y + rigidBodyComponent.height > restraintComponent.bottom) {
+                restraintComponent.restrainingSides.push("bottom");
             }
         }
     };
